@@ -8,7 +8,7 @@ solutions.
 | Week 1  | Wed, Aug 19 | Fundamentals of R                      |  :white_check_mark:     |
 |         | Fri, Aug 21 | Data types and functions               |  :white_check_mark:     |
 | Week 2  | Wed, Aug 26 | Shell and version control              |  :white_check_mark:     |
-|         | Fri, Aug 28 | Data structures and subsetting         |                         |
+|         | Fri, Aug 28 | Data structures and subsetting         |  :white_check_mark:     |
 | Week 3  | Wed, Sep 02 | Subsetting and S3 OO system            |                         |
 |         | Fri, Sep 04 | Data manipulation with dplyr and tidyr |                         |
 | Week 4  | Wed, Sep 09 | Functionals with purrr                 |                         |
