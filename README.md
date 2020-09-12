@@ -12,7 +12,7 @@ solutions.
 | Week 3  | Wed, Sep 02 | Subsetting and S3 OO system            |  :white_check_mark:     |
 |         | Fri, Sep 04 | Data manipulation with dplyr and tidyr |  :white_check_mark:     |
 | Week 4  | Wed, Sep 09 | Functionals with purrr                 |  :white_check_mark:     |
-|         | Fri, Sep 11 | Statistical graphics with ggplot2      |                         |
+|         | Fri, Sep 11 | Statistical graphics with ggplot2      |  :white_check_mark:     |
 | Week 5  | Wed, Sep 16 | Advanced visualizations                |                         |
 |         | Fri, Sep 18 | String manipulation and regexes        |                         |
 | Week 6  | Wed, Sep 23 | Spatial data with sf                   |                         |
