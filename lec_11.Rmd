@@ -1,0 +1,181 @@
+---
+title: "Exercises: Spatial data with sf"
+author: "Shawn Santo"
+date: ""
+output: 
+  html_document:
+    css: "exercises.css"
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: false
+    df_print: paged
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      comment = "#>", highlight = TRUE, eval = FALSE,
+                      fig.align = "center")
+```
+
+# Packages
+
+```{r}
+library(sf)
+library(tidyverse)
+library(mapview)
+```
+
+# Data
+
+## NC counties
+
+```{r}
+nc <- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+```
+
+## NC gamelands
+
+```{r eval=FALSE}
+download.file("https://opendata.arcgis.com/datasets/e5ddff9b96204c6181be7c022e61d946_0.zip?outSR=%7B%22latestWkid%22%3A32119%2C%22wkid%22%3A32119%7D",
+              destfile = "data/Gamelands.zip")
+unzip("data/Gamelands.zip", exdir = "data/")
+```
+
+```{r}
+nc_gamelands <- st_read("data/Game_Lands_-_general.shp", quiet = TRUE)
+```
+
+# Exercise 1 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Use `ggplot` to create a choropleth map for the proportion of sudden infant 
+deaths, for the period of July 1, 1974 to June 30, 1979.
+
+## Solution
+
+```{r}
+nc %>% 
+  select(BIR74, SID74) %>% 
+  mutate(SID74_prop = SID74 / (BIR74 + SID74)) %>% 
+  st_as_sf() %>% 
+  ggplot() +
+  geom_sf(aes(fill = SID74_prop)) +
+  scale_fill_gradient(low = "#fff7f3", high = "#49006a") +
+  labs(title = "July 1, 1974 to June 30, 1979", 
+       fill  = "",
+       subtitle = "Proportion of SID by county") +
+  theme_bw(base_size = 16)
+```
+
+# Exercise 2 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Create a map that includes NC county boundaries, Game Lands, and hazardous waste
+sites. Data for the hazardous waste sites is available at
+https://www.nconemap.gov/datasets/hazardous-waste-sites
+
+This data set represents the location of sites within North Carolina that 
+are regulated by the hazardous waste portions of the 
+Resource Conservation and Recovery Act (RCRA).
+
+## Solution
+
+Let's get the data.
+
+```{r eval=FALSE}
+download.file("https://opendata.arcgis.com/datasets/84ff6d8f569f4bb0965bfa906aa06e6d_2.zip?outSR=%7B%22latestWkid%22%3A32119%2C%22wkid%22%3A32119%7D",
+              destfile = "data/waste.zip")
+unzip("data/waste.zip", exdir = "data/")
+```
+
+```{r}
+waste <- st_read("data/Hazardous_Waste_Sites.shp", quiet = TRUE)
+```
+
+Next, we'll put everything on the same coordinate reference system.
+
+```{r}
+st_crs(nc)
+st_crs(nc_gamelands)
+st_crs(waste)
+```
+
+```{r}
+nc <- st_transform(nc, st_crs(nc_gamelands))
+```
+
+Create three layers using `mapview()`.
+
+```{r}
+nc_mapview <- mapview(nc, alpha.regions = .2, alpha = .9,
+                  label = nc[, "NAME", drop = T], popup = NULL,
+                  layer.name = "NC Counties")
+```
+
+```{r}
+nc_gamelands_mapview <- mapview(nc_gamelands, col.regions = "#ff6700",
+        label = round(nc_gamelands[, "SUM_ACRES", drop = T], 2),
+        layer.name = "NC Gamelands")
+```
+
+```{r}
+nc_waste_mapview <- mapview(waste, col.regions = "#65ff00",
+                            alpha = .3,
+                            popup = NULL,
+                            alpha.regions = .3,
+                            label = waste[, "SITE_NAME", drop = T],
+                            layer.name = "NC Waste Sites")
+```
+
+```{r fig.width=8}
+mapviewOptions(legend.pos = "bottomright")
+nc_mapview + nc_gamelands_mapview + nc_waste_mapview
+```
+
+# Exercise 3 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Create a plot of North Carolina's Game Lands and all the waste sites within
+100 meters of a Game Land area. Try two of the three plot functions.
+
+## Solution
+
+From Exercise 1, we have both layers on the same coordinate reference system.
+
+```{r}
+close_waste_lgl <- st_is_within_distance(waste, nc_gamelands, 
+                                         dist = 100, sparse = F)
+close_waste <- waste %>% 
+  filter(apply(close_waste_lgl, 1, sum) > 0)
+```
+
+Using `mapview()`
+
+```{r fig.width=8}
+nc_gamelands_mapview <- mapview(nc_gamelands, col.regions = "#ff6700",
+        label = nc_gamelands$GML_HAB,
+        layer.name = "NC Gamelands")
+
+nc_waste_mapview <- mapview(close_waste, col.regions = "#65ff00",
+                            alpha = .3,
+                            alpha.regions = .3,
+                            label = waste[, "SITE_NAME", drop = T],
+                            layer.name = "NC Waste Sites")
+
+nc_gamelands_mapview + nc_waste_mapview
+```
+
+Using `ggplot()`
+
+```{r}
+ggplot(nc) +
+  geom_sf(alpha = .3) +
+  geom_sf(data = close_waste, color = "#65ff00", size = 3) +
+  geom_sf(data = nc_gamelands, fill = "#ff6700", alpha = .5) +
+  theme_bw()
+```
+
