@@ -1,0 +1,156 @@
+---
+title: "Exercises: Web scraping part I"
+author: "Shawn Santo"
+date: ""
+output: 
+  html_document:
+    css: "exercises.css"
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: false
+    df_print: paged
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      comment = "#>", highlight = TRUE,
+                      fig.align = "center")
+```
+
+# Packages
+
+```{r}
+library(tidyverse)
+library(rvest)
+```
+
+# Exercise 1 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Go to http://books.toscrape.com/catalogue/page-1.html and scrape the first 
+five pages of data on books with regards to their
+
+1. title
+2. price
+3. star rating
+
+Organize your results in a neatly formatted tibble similar to below.
+
+```{r eval=FALSE}
+# A tibble: 100 x 3
+   title                                             price rating
+   <chr>                                             <chr> <chr> 
+ 1 A Light in the Attic                              £51.… Three 
+ 2 Tipping the Velvet                                £53.… One   
+ 3 Soumission                                        £50.… One   
+ 4 Sharp Objects                                     £47.… Four  
+ 5 Sapiens: A Brief History of Humankind             £54.… Five  
+ 6 The Requiem Red                                   £22.… One   
+ 7 The Dirty Little Secrets of Getting Your Dream J… £33.… Four  
+ 8 The Coming Woman: A Novel Based on the Life of t… £17.… Three 
+ 9 The Boys in the Boat: Nine Americans and Their E… £22.… Four  
+10 The Black Maria                                   £52.… One   
+# … with 90 more rows
+```
+
+## Solution
+
+```{r}
+
+# example for page 1, see how everything works
+url <- "http://books.toscrape.com/catalogue/page-1.html"
+
+read_html(url) %>% 
+  html_nodes(css = ".price_color") %>% 
+  html_text()
+
+read_html(url) %>% 
+  html_nodes(css = ".product_pod a") %>% 
+  html_attr("title") %>% 
+  .[!is.na(.)]
+
+read_html(url) %>% 
+  html_nodes(css = ".star-rating") %>% 
+  html_attr(name = "class") %>% 
+  str_remove(pattern = "star-rating ")
+```
+
+```{r}
+# turn our code into a function
+get_books <- function(page) {
+  
+  base_url <- "http://books.toscrape.com/catalogue/page-"
+  url <- str_c(base_url, page, ".html")
+  
+  books_html <- read_html(url)
+  
+  prices <- books_html %>% 
+    html_nodes(css = ".price_color") %>% 
+    html_text()
+  
+  titles <- books_html %>% 
+    html_nodes(css = ".product_pod a") %>% 
+    html_attr("title") %>% 
+    .[!is.na(.)]
+
+  ratings <- books_html %>% 
+    html_nodes(css = ".star-rating") %>% 
+    html_attr(name = "class") %>% 
+    str_remove(pattern = "star-rating ")
+  
+  books_df <- tibble(
+    title  = titles,
+    price  = prices,
+    rating = ratings
+  )
+  
+  return(books_df)
+}
+```
+
+```{r}
+# iterate across pages
+pages <- 1:5
+books <- map_df(pages, get_books)
+books
+```
+
+# Exercise 2 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+HTML tags are composed of three things: an opening tag, content and ending tag.
+They each have different properties. Identify what the following tags are used
+for. I will only include the opening tag.
+
+|    Tag    | Description |
+|:---------:|-------------|
+|   `<b>`   |             |
+|   `<i>`   |             |
+|   `<h3>`  |             |
+| `<table>` |             |
+|   `<tr>`  |             |
+|   `<th>`  |             |
+|   `<td>`  |             |
+|  `<img>`  |             |
+|   `<p>`   |             |
+
+## Solution
+
+HTML tags are composed of three things: an opening tag, content and ending tag.
+They each have different properties. Identify what the following tags are used
+for. I will only include the opening tag.
+
+|    Tag    | Description         |
+|:---------:|---------------------|
+|   `<b>`   | bold                |
+|   `<i>`   | italics             |
+|   `<h3>`  | level 3 header      |
+| `<table>` | table               |
+|   `<tr>`  | row in a table      |
+|   `<th>`  | header in a table   |
+|   `<td>`  | cell in a table     |
+|  `<img>`  | image               |
+|   `<p>`   | paragraph           |
