@@ -1,0 +1,70 @@
+---
+title: "Exercises: make"
+author: "Shawn Santo"
+date: ""
+output: 
+  html_document:
+    css: "exercises.css"
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: false
+    df_print: paged
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      comment = "#>", highlight = TRUE,
+                      fig.align = "center")
+```
+
+# Exercise 1 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Create a `Makefile` for the R project in the 
+[learn_make](https://github.com/sta523-fa20/learn_make) repository
+on GitHub. The target goal should be `learn_make.html`. The below steps will
+help guide you in creating `Makefile`.
+
+1. Diagram the dependency structure on paper.
+
+2. First, create a `Makefile` that only knits the Rmd file and 
+   produces the `learn_make.html` file.
+
+3. Next, add rules for the data dependencies.
+
+4. Add phony `clean_html` and `clean_data` targets that delete the html file and
+   delete the rds files in `data/`, respectively.
+   
+5. Revise your `Makefile` with built-in variables or other useful features.
+
+## Solution
+
+If you copy this solution to your `Makefile`, be sure that tabs preceded the
+recipes. If you see `Makefile: *** missing separator.  Stop.`, `make` is most
+likely letting you know that the indented lines have been made with something
+other than a tab.
+
+```make
+learn_make.html: learn_make.Rmd data/ok_tor.rds data/fire_stations.rds data/school_districts.rds
+  Rscript -e "library(rmarkdown); render('learn_make.Rmd')"
+
+data/ok_tor.rds: R/get_tornadoes.R
+	Rscript $<
+
+data/fire_stations.rds: R/get_fire_stations.R
+	Rscript $<
+
+data/school_districts.rds: R/get_school_districts.R
+	Rscript $<
+
+clean_html:
+	rm learn_make.html
+
+clean_data:
+	cd data; rm *.rds
+
+.PHONY: clean_html clean_data
+```
+
