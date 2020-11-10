@@ -29,5 +29,5 @@ solutions.
 |         | Fri, Oct 30 | More parallelization and profiling     |  :white_check_mark:     |
 | Week 12 | Wed, Nov 04 | Spark & sparklyr part I                |                         |
 |         | Fri, Nov 06 | Spark & sparklyr part II               |                         |
-| Week 13 | Wed, Nov 11 | Special topic                          |                         |
+| Week 13 | Wed, Nov 11 | Special topic                          |  :white_check_mark:     |
 |         | Fri, Nov 13 | Special topic                          |                         |

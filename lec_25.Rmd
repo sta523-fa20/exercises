@@ -1,0 +1,121 @@
+---
+title: "Exercises: Integration: R and Python"
+author: "Shawn Santo"
+date: ""
+output: 
+  html_document:
+    css: "exercises.css"
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: false
+    df_print: paged
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      comment = "#>", highlight = TRUE, eval = FALSE,
+                      fig.align = "center")
+```
+
+# Packages and set-up
+
+```{r}
+reticulate::use_python(python = "/usr/bin/python3", required = TRUE)
+library(reticulate)
+```
+
+# Exercise 1 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Use Python to read in data from the Montgomery County of Maryland Adoption
+center - https://data.montgomerycountymd.gov/api/views/e54u-qx42/rows.csv?accessType=DOWNLOAD.
+In a Python code chunk, clean up the variable names so they are all lowercase
+and every space is replaced with a `_`. Subset the data frame so it only
+contains columns `'animal_id':'sex'`; save it as a data frame object
+named `pets`. <br/><br/>
+In an R chunk, get the counts for each breed. Create a bar plot that shows the
+counts of the animal breeds where there are at least 4 adoptable pets of said
+breed. Color the bars according to the animal's type.
+
+## Solution
+
+```{python}
+# python chunk
+import pandas as pd
+pets = pd.read_csv("https://data.montgomerycountymd.gov/api/views/e54u-qx42/rows.csv?accessType=DOWNLOAD")
+pets.columns = pets.columns.str.lower().str.replace(' ', '_')
+pets = pets.loc[:, 'animal_id':'sex']
+```
+
+```{r}
+# r chunk
+py$pets %>% 
+  group_by(animal_type, breed) %>% 
+  summarise(count = n()) %>% 
+  filter(count > 3) %>% 
+  arrange(desc(count)) %>% 
+  ggplot(aes(x = reorder(breed, -count), y = count, fill = animal_type)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "Breed", y = "Count", fill = "Animal type",
+       title = "Montgomery County of Maryland Adoptable Pets") +
+  theme_bw()
+```
+
+# Exercise 2 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Diagnose the error in the below set of code.
+
+```{r}
+# r chunk
+x <- seq(1, 11, by = 2)
+```
+
+```{python error=TRUE}
+# python chunk
+y = list(range(-20, 21))
+y[r.x[5]]
+```
+
+## Solution
+
+There is a type mismatch. Object `x` is of type double. List indices must be
+subset with integers.
+
+# Exercise 3 {.tabset .tabset-fade .tabset-pills}
+
+## Problem
+
+Investigate the conversion from Python to R for a Python Set. How about for
+an object of class `range` in Python?
+
+```{python}
+# python chunk
+x = range(1, 5)
+s = {1, 1, 3, 4, 5, 5, 10, 10}
+```
+
+## Solution
+
+```{python}
+# python chunk
+x = range(1, 5)
+s = {1, 1, 3, 4, 5, 5, 10, 10}
+print(x)
+print(s)
+```
+
+```{r}
+# r chunk
+py$x
+class(py$x)
+py$s
+class(py$s)
+```
+
+If a Python object of a custom class is returned, then an R reference to that
+object is returned. You can call methods and access properties of the object.
